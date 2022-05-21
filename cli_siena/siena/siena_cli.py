@@ -31,12 +31,12 @@ def create_argument_parser():
         argparse.ArgumentParser()
     """
 
-    parser = argparse.ArgumentParser(prog="siena", description="starts DIME CLI")
+    parser = argparse.ArgumentParser(prog="siena", description="starts SIENA CLI")
     subparsers = parser.add_subparsers(help='desired SIENA interface to run [cli/server]', dest="subparser_name")
 
     parser_server = subparsers.add_parser(
         name="server",
-        help='run DIME server, a web-based visualization tool for DIME.'
+        help='run SIENA server, a web-based visualization tool for SIENA.'
     )
     parser_server.add_argument(
         "-p",
@@ -58,7 +58,7 @@ def create_argument_parser():
 
 
 def run_siena_cli() -> NoReturn:
-    logger.info("Running main DIME CLI.")
+    logger.info("Running main SIENA CLI.")
     arg_parser = create_argument_parser()
     cmdline_args = arg_parser.parse_args()
     interface = cmdline_args.subparser_name
@@ -66,7 +66,7 @@ def run_siena_cli() -> NoReturn:
     if not interface:
         arg_parser.print_help()
         logger.error("Please specify a valid positional arg out of \'explain\', \'visualize\', "
-                     "\'server\', \'init\' to use dime CLI.")
+                     "\'server\', \'init\' to use SIENA CLI.")
         return
 
     if str(interface).lower() == "server":
@@ -76,16 +76,16 @@ def run_siena_cli() -> NoReturn:
         # configs = get_default_configs(interface=InterfaceType.INTERFACE_SERVER)
 
         # if not configs:
-        #     logger.error("Failed to retrieve default dime configs. DIME CLI will be terminated.")
+        #     logger.error("Failed to retrieve default SIENA configs. SIENA CLI will be terminated.")
         #     return
         app = create_app()
         app.run(port=server_port)
 
     else:
-        logger.error('One or more incorrect CLI arguments detected. Refer "dime -h" to view allowed arguments')
+        logger.error('One or more incorrect CLI arguments detected. Refer "siena -h" to view allowed arguments')
         return
 
 
 if __name__ == '__main__':
-    logger.error("This script cannot be directly executed. please use the 'dime' CLI instead.")
+    logger.error("This script cannot be directly executed. please use the 'siena' CLI instead.")
     exit(1)
