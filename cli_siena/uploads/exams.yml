@@ -1,0 +1,77 @@
+version: "2.0"
+
+nlu:
+- intent: exams_timetables
+  examples: |
+    - exam time tables දාලද?
+    - exam time tables update කරලද?
+    - අළුත් exam time tables දාලද?
+    - අළුත් exam time tables update කරලද?
+    - exam time tables අලුතින් දාලද?
+    - exam time table අළුත් කරලද 
+    - exam time tables අලුතින් දාලද?
+
+- intent: exams_exam_types
+  examples: |
+    - online exams වල වර්ග තියනවාද
+    - online exam වර්ග මොනවද
+    - online exam types වල වෙනස මොකක්ද
+    - වයිවා තියෙන්නේ මොන එක්සෑම් වලටද
+    - viva තියෙන්නේ මොන එක්සෑම් වලටද 
+    - online exam එකක් fail උනොත් මොකද වෙන්නේ 
+    - හැම exam එකකම viva තියෙනවද
+    - Type 1 exam කියන්නේ මොකක්ද
+    - Type 2 එකක් කියන්නේ මොකක්ද
+
+- intent: exams_technical_issues
+  examples: |
+    - Lockdown browser එක stuck වෙනවා
+    - Lockdown browser එක stuck වෙනවා ඒකට මොකද කරන්නෙ 
+    - Lockdown browser එක face detection එකේදී fail වෙනව 
+    - ලොක් ඩව්න් බ්‍ර්ව්සර් එක ඔපන් වෙන්නෑ. මොකක්ද කරන්නේ?
+    - ලොක් ඩව්න්browser එක close වෙනවා. මොකක්ද කරන්නේ ?
+    - Lockdown browser එක webcam එක ගන්නේ නැ
+    - Lockdown browser එක mic එක ගන්නේ නැ
+    - Lockdown browser එක වෙබ්කැම් එක ගන්නේ නැ
+
+- intent: exams_lockdown_browser
+  examples: |
+    - Lockdown browser එක කියන්නේ මොකද්ද
+    - Lockdown browser එක compulsory ද 
+    - Lockdown browser එක දාගන්නම ඕනෙද?
+    - Lockdown browser එක නොදා exam කරන්න බැරිද?
+    - Lockdown browser එක install කරන්නේ කොහොමද ?
+    - Lockdown browser එක windows 7 වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක windows 8 වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක windows 10 වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක වින්ඩෝස් වල install කරන්න පුළුවන් ද? 
+    - Lockdown browser එක windows 11 වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක mac os එකේ install කරන්න පුළුවන් ද?
+    - Lockdown browser එක linux වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක android වල install කරන්න පුළුවන් ද?
+    - Lockdown browser එක ipados eke install කරන්න පුළුවන් ද?
+
+- intent: modules_aptitude_test_what
+  examples: |
+    - AT
+
+- intent: exams_aptitude_test_info
+  examples: |
+    - Aptitude test එක අමාරුයි ද?
+    - Aptitude test එකට past papers හොයා ගන්න තැනක් තියෙනවා ද?
+    - Aptitude test එකට pay කරන්න ඕන ද?
+    - Aptitude test එකට ගෙවන්න කරන්න ඕන ද?
+    - Aptitude test එකට කොපමණ ප්‍රමාණයක් ගෙවන්නට උවමනා ද?
+
+- intent: exams_eligibility_list
+  examples: |
+    - එලිජිබිලිටි ලිස්ට් එක බලන්නේ කොහෙන්ද
+    - Eligibility ලිස්ට් එක දාන්නේ කොතනද
+    - මට eligibility list එක බලන්න ඕන
+    - මේ අවුරුද්දේ eligibility list එක පෙන්නනවද
+    - 2022 එලිජිබිලිටි ලිස්ට් එක කොහෙන්ද බලන්නේ
+    - 1st sem එකේ eligibility list එක download කරගන්න ඕන
+    - 2nd sem eligibility list එක කොහෙද දාලා තියෙන්නෙ
+    - මේ සෙම් එකේ එලිජිබිලිටි ලිස්ට් එක ඩවුන්ලෝඩ් කරගන්න ඕන
+    - eligibility ලිස්ට් එක ගන්නේ කොහොමද
+    - eligibility list එක upload කරන්නේ කොහෙටද
