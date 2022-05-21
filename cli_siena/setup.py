@@ -16,7 +16,7 @@ except Exception as e:
 
 setup(
     name='siena',
-    version='0.0.1',
+    version='0.0.1a1',
     packages=find_packages(),
     include_package_data=True,
     package_data={
@@ -26,7 +26,7 @@ setup(
     description="SIENA tool.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/thisisishara/dime-xai",
+    url="https://github.com/akalankasakalasooriya/siena_text_annotation_tool",
     author="Akalanka Sakalasooriya",
     author_email="himesha@outlook.com",
     # license="MIT",  # TODO: add license
