@@ -34,9 +34,11 @@ listFilePast.forEach(file => {
 
 $(document).on('mouseenter', '.card-highlighted-text', function () {
     $(this).children('span:nth(0)').css("visibility", "visible");
+    $(this).attr("title", $(this).attr("data"));
 });
 $(document).on('mouseleave', '.card-highlighted-text', function () {
     $(this).children('span:nth(0)').css("visibility", "hidden");
+    $(this).removeAttr("title");
 });
 
 function getSelected() {
@@ -69,7 +71,7 @@ $(document).on('mouseup', `div[name='annotation-cell']`, function () {
             var entitiList = ""
             var entitiList = ""
             $.ajax({
-                url: "/API/algorithms/siena",
+                url: "/API/knowledge",
                 type: 'POST',
                 contentType: "application/json",
                 cache: false,
@@ -242,13 +244,6 @@ $(document).ready(function () {
             var text = "";
             const files = data.FILES[0]
             text = files.NAME
-            // files.forEach(function (item) {
-            //     text += `<li class="list-options entity-list" name="siena-file-name-list" data-file-id="${item._id}" >${item.NAME}</li>`;
-            // });
-            // $('#siena-file-list').html(text);
-            // const documentId = $('#siena-file-list').children().first().data('file-id')
-            // const fileName = $('#siena-file-list').children().first().text()
-            // $('#siena-selected-file-id').val(documentId)
             $('#siena-workspace-filename-title').text(text)
             getSentenses()
 
@@ -258,8 +253,61 @@ $(document).ready(function () {
         }
     });
 
+    $.ajax({
+        url: "/API/navigation/",
+        type: 'GET',
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+            const data = JSON.parse(response)
+            var text = "";
+            const files = data.FILES
+            files.forEach(function (item) {
+                text += `<li class="list-options file-list" name="siena-file-name-list" title="${item.PATH}" data-file-id="${item.PATH}" >${item.NAME}</li>`;
+            });
+            $('#siena-file-list').html(text);
+            const documentId = $('#siena-file-list').children().first().data('file-id')
+            const fileName = $('#siena-file-list').children().first().text()
+            $('#siena-selected-file-id').val(documentId)
+
+        },
+        error: function (err) {
+            $('#siena-file-list').html("Error");
+        }
+    });
+
+    refreshBaseWordList()
+
     return false;
 });
+
+function refreshBaseWordList(){
+    $.ajax({
+        url: "/API/knowledge",
+        type: 'GET',
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+            const data = JSON.parse(response)
+            var text = "";
+            const BASE_WORDS = data.DATA
+            BASE_WORDS.forEach(function (item) {
+                text += `<li class="list-options base-word-list" title="${item.entity_name}" name="siena-base-word-list" data-entity-name="${item.entity_name}" data-base-word="${item.base_word}" >${item.base_word}</li>`;
+            });
+            $('#siena-knowledge-explorer').html(text);
+
+        },
+        error: function (err) {
+            $('#siena-knowledge-explorer').html("Error");
+        }
+    });
+}
+
+var intervalId = window.setInterval(function(){
+    refreshBaseWordList()
+  }, 5000);
 
 function getSentenses() {
     $.ajax({
@@ -290,6 +338,10 @@ function getSentenses() {
 }
 
 $(document).on('click', `#add-new-entity`, function () {
+    $('#siena-manage-entities-btn-update').attr("id", "siena-manage-entities-btn-done");
+    $("#manage-entity-name").val('')
+    $("#manage-entity-replacer-name").val('')
+    $("#manage-entity-colour").val('#000000')
     $('#siena-manage-entities').show();
 
 });
@@ -297,6 +349,10 @@ $(document).on('click', `#add-new-entity`, function () {
 $(document).on('click', `.card-highlighted-text-close`, function () {
     const text_marked = $(this).parent().text()
     const intent = $(this).parent().parent().data('s-intent')
+    const highlightedText = $(this).parent().text()
+    console.log("AAA",highlightedText)
+    const annotatedEntity = $(this).parent().attr("data");
+    console.log("AAA",highlightedText)
     $(this).parent().parent().attr("id", "siena-temp-cell-mark");
     const sentence_id = $(this).closest('.card-text').data('s-id');
     $(this).parent().replaceWith(text_marked)
@@ -308,8 +364,9 @@ $(document).on('click', `.card-highlighted-text-close`, function () {
             "id": sentence_id,
             "TEXT": text,
             "INTENT": intent,
-            "ENTITY":"",
-            "HIGHLIGHTED" :"",
+            "ENTITY":annotatedEntity,
+            "HIGHLIGHTED" :highlightedText,
+            "MODE" :"ENTITY_REMOVE",
         },
     ]
     $.ajax({
@@ -360,10 +417,10 @@ $("#siena-entity-list").delegate('li', 'click', function () {
 });
 
 $(document).on('click', `#siena-manage-entities-btn-done`, function () {
-    const entity_name = $("#manage-entity-name").val()
-    const entity_replacer = $("#manage-entity-replacer-name").val()
-    const entity_color = $("#manage-entity-colour").val()
-    if (!entity_name && !entity_replacer && !entity_color) {
+    const entity_name = $("#manage-entity-name").val().trim()
+    const entity_replacer = $("#manage-entity-replacer-name").val().trim()
+    const entity_color = $("#manage-entity-colour").val().trim()
+    if (!entity_name || !entity_replacer || !entity_color) {
         return false
     }
     else {
@@ -518,24 +575,41 @@ $(document).on('click', `#siena-workspace-next`, function () {
 });
 
 $(document).on('click', `#siena-side-bar-icon-entities`, function () {
+    $('#siena-knowledge-side-window').hide();
+    $("#siena-side-bar-icon-knowlegde").attr("class", "non-active");
     $('#siena-files-side-window').hide();
+    $("#siena-side-bar-icon-files").attr("class", "non-active");
     $('#siena-entity-side-window').show();
     $("#siena-side-bar-icon-entities").attr("class", "active");
-    $("#siena-side-bar-icon-files").attr("class", "non-active");
 
 });
 
 $(document).on('click', `#siena-side-bar-icon-files`, function () {
+    $('#siena-knowledge-side-window').hide();
+    $("#siena-side-bar-icon-knowlegde").attr("class", "non-active");
     $('#siena-entity-side-window').hide();
+    $("#siena-side-bar-icon-entities").attr("class", "non-active");
     $('#siena-files-side-window').show();
     $("#siena-side-bar-icon-files").attr("class", "active");
+
+});
+
+$(document).on('click', `#siena-side-bar-icon-knowlegde`, function () {
+    $('#siena-files-side-window').hide();
+    $('#siena-entity-side-window').hide();
+    $("#siena-side-bar-icon-files").attr("class", "non-active");
     $("#siena-side-bar-icon-entities").attr("class", "non-active");
+    $('#siena-knowledge-side-window').show();
+    $("#siena-side-bar-icon-knowlegde").attr("class", "active");
 
 });
 
 $(document).on('click', `li[name="siena-file-name-list"]`, function () {
-    const documentId = $(this).data('file-id');
-    $('#siena-selected-file-id').val(documentId);
+    const documentPath = $(this).data('file-id');
+    docummentName=documentPath.split("/")
+    docummentName = docummentName[docummentName.length -1]
+    $('#siena-selected-file-id').val(docummentName);
+    $('#siena-workspace-filename-title').text(docummentName);
     $('#file-open-window').html(`
     <div class="windows8">
     <div class="wBall" id="wBall_1">
@@ -555,9 +629,69 @@ $(document).on('click', `li[name="siena-file-name-list"]`, function () {
     </div>
 </div>
     `);
-    getSentenses();
+    postData = {}
+    postData["FILE_PATH"] = documentPath
+    $.ajax({
+        url: "/API/fileUpload",
+        type: 'POST',
+        cache: false,
+        data: JSON.stringify(postData),
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            getSentenses();
+            return true
+        },
+        error: function (err) {
+            return false
+        }
+    });
     return true;
 });
+
+
+$(document).on('click', `li[name="siena-base-word-list"]`, function () {
+    const baseWord = $(this).data('base-word');
+    const entityName = $(this).data('entity-name');
+    postData = {}
+    $('#file-open-window').html(`
+    <div class="windows8">
+    <div class="wBall" id="wBall_1">
+        <div class="wInnerBall"></div>
+    </div>
+    <div class="wBall" id="wBall_2">
+        <div class="wInnerBall"></div>
+    </div>
+    <div class="wBall" id="wBall_3">
+        <div class="wInnerBall"></div>
+    </div>
+    <div class="wBall" id="wBall_4">
+        <div class="wInnerBall"></div>
+    </div>
+    <div class="wBall" id="wBall_5">
+        <div class="wInnerBall"></div>
+    </div>
+</div>
+    `);
+    postData["BASE_WORD"]=baseWord 
+    postData["ENTITY"]=entityName
+    console.log("called")
+    $.ajax({
+        url: "/API/autoannotate",
+        type: 'POST',
+        cache: false,
+        data: JSON.stringify(postData),
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            getSentenses();
+            return true
+        },
+        error: function (err) {
+            return false
+        }
+    });
+    return true;
+});
+
 
 
 $(document).on('click', `#siena-project-export`, function () {
@@ -599,6 +733,36 @@ $(document).on('click', `#siena-project-export`, function () {
         }
     });
 
-    // getSentenses();
     return true;
 });
+
+// knowledge file upload
+$("#siena-knowledge-import").on("click", function (evt) {
+    document.getElementById('knowledge-file-upload').click();
+    knowledgeUploadHandler()
+  });
+  
+  function knowledgeUploadHandler(){
+    if (document.getElementById("knowledge-file-upload").files.length == 1) {
+      var documentData = new FormData();
+      documentData.append('file', $('#knowledge-file-upload')[0].files[0]);
+      $.ajax({
+        url: "/knowledge/upload",
+        type: 'POST',
+        data: documentData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+    
+        }
+      });
+    } else {
+      setTimeout(knowledgeUploadHandler,1000);
+    }
+  
+  
+    return true;
+  
+  }
+

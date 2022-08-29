@@ -1,16 +1,21 @@
 import os
-import csv
-from tokenize import String
+import string
 from flask import *
 from bson.json_util import *
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import CSRFProtect
+import copy
 csrf = CSRFProtect()
-import siena.server.functions.actions as functions
+try:
+    import functions.actions as functions
+except:
+    import siena.server.functions.actions as functions
 import json
 from pathlib import Path
 Path("uploads").mkdir(parents=True, exist_ok=True)
 Path("exports").mkdir(parents=True, exist_ok=True)
+# Get the current working directory 
+CURRENT_WORKING_DIRECTORY = os.getcwd()
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -67,20 +72,26 @@ def create_app(test_config=None):
     def save_file():
         if request.method == 'POST':
             # check if the post request has the file part
-            if 'file' not in request.files:
-                flash('No file part')
-                return 'file not found!', 404
-            file = request.files['file']
-            # If the user does not select a file, the browser submits an
-            # empty file without a filename.
-            if file.filename == '':
-                flash('No selected file')
-                return 'file name not found!', 404
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                path = os.path.join(app.config['UPLOAD_FOLDER'],filename)
-                file.save(path)
-                functions.read_yml(path,file.filename)
+            if 'file' in request.files:
+                file = request.files['file']
+                # If the user does not select a file, the browser submits an
+                # empty file without a filename.
+                if file.filename == '':
+                    flash('No selected file')
+                    return 'file name not found!', 404
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    path = os.path.join(app.config['UPLOAD_FOLDER'],filename)
+                    file.save(path)
+                    functions.read_yml(path,file.filename)
+            else:
+                post_data = request.json
+                file_path = post_data['FILE_PATH']
+                if not file_path:
+                    flash('No selected file')
+                    return 'file name not found!', 404
+                filename = file_path.split("/")[-1]
+                functions.read_yml(file_path,filename)
         return jsonify({})
 
     # API for sentence management
@@ -89,29 +100,39 @@ def create_app(test_config=None):
         responce = {}
         data = []
         if request.method == 'GET':
-            with open("inprogress.SIENA", encoding='utf-8') as file:
+            fle = Path('inprogress.SIENA')
+            fle.touch(exist_ok=True)
+            f = open(fle)
+            with open("inprogress.SIENA","r", encoding='utf-8') as file:
                 line_id = 0
                 while (line := file.readline().rstrip()):
                     row = {}
                     file_line = line.split('<sep>')
-                    row["sentence"]=file_line[1]    
+                    row["sentence"]=file_line[1]   
                     row["intent"]=file_line[0]
                     row["id"]=line_id
                     line_id+=1
                     data.append(row)
                 responce["data"] = data
-                return JSONEncoder().encode(responce)
+            return JSONEncoder().encode(responce)
         elif request.method == 'PATCH':
             post_data = request.json
             sentences = post_data['data']
             for sentence in sentences:
                 intent = sentence['INTENT']
                 entity = sentence['ENTITY']
+                mode = ""
+                if "MODE" in sentence.keys():
+                    mode = sentence['MODE']
                 highlighted = sentence['HIGHLIGHTED']
                 sentence_id = int(sentence['id'])
                 text = sentence['TEXT']
-                if intent != "" and entity != "":
-                    functions.update_knowledge(entity.strip(),highlighted.strip())
+                if mode == "ENTITY_REMOVE":
+                    functions.remove_entry_from_knowledge(entity.strip(),highlighted.strip())
+                else:
+                    if intent != "" and entity != "":
+                        functions.update_knowledge(entity.strip(),highlighted.strip())
+
                 functions.update_sentences_by_user(sentence_id,text,intent)
             return jsonify(responce)
         elif request.method == 'DELETE':
@@ -183,34 +204,108 @@ def create_app(test_config=None):
             return JSONEncoder().encode(data)
         else:
             return 'bad request!', 400
+    
+    # import knowledge
+    @app.route('/knowledge/upload', methods=['POST', 'GET'])
+    def upload_knowldge():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'file' in request.files:
+                file = request.files['file']
+                # If the user does not select a file, the browser submits an
+                # empty file without a filename.
+                if file.filename == '':
+                    flash('No selected file')
+                    return 'file name not found!', 404
+                if file and functions.allowed_file_knowledge(file.filename):
+                    file.save("siena_cache/knowledge_base_.csv")
+                    
+            else:
+                return {"status": "error", "response": "file not found!"}, 400
 
-    # protoyped SIENA algorithem
-    @app.route('/API/algorithms/siena',methods=['POST'])
+        else:
+            return {"status": "error", "response": "bad request!"}, 400
+
+    # export knowledge
+    @app.route('/knowledge/export', methods=['POST', 'GET'])
+    def export_knowledge():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'file' in request.files:
+                file = request.files['file']
+                # If the user does not select a file, the browser submits an
+                # empty file without a filename.
+                if file.filename == '':
+                    flash('No selected file')
+                    return 'file name not found!', 404
+                if file and functions.allowed_file_knowledge(file.filename):
+                    filename = secure_filename(file.filename)
+                    path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    file.save(path)
+            else:
+                post_data = request.json
+                file_path = post_data['FILE_PATH']
+                if not file_path:
+                    flash('No selected file')
+                    return 'file name not found!', 404
+                filename = file_path.split("/")[-1]
+                read_yml(file_path, filename)
+        return {}
+
+    # SIENA knowledge component
+    @app.route('/API/knowledge',methods=['POST','GET'])
     def endpoint_algorithms():
         data = {}
         if request.method == 'POST':
             post_data = request.json
             text = post_data["TEXT"]
-            if text != "":
-                data["SUGGESTIONS"] = functions.get_suggestions(text)
-            else:
-                data["SUGGESTIONS"] = []
+            data["SUGGESTIONS"] = functions.get_suggestions(text)
+            return JSONEncoder().encode(data)
+        elif request.method == 'GET':
+            data["DATA"] = functions.get_base_words()
             return JSONEncoder().encode(data)
         else:
             return 'bad request!', 400
 
+    # SIENA auto annotate algorithem
+    @app.route('/API/autoannotate',methods=['POST'])
+    def endpoint_autoannotate():
+        data = {}
+        if request.method == 'POST':
+            post_data = request.json
+            base_word = post_data["BASE_WORD"]
+            entity = post_data["ENTITY"]
+            functions.auto_annotate(base_word,entity)
+            return JSONEncoder().encode(data)
+        else:
+            return 'bad request!', 400
 
+    # file navigation API
+    @app.route('/API/navigation/',methods=['GET'])
+    def endpoint_navigation():
+        global CURRENT_WORKING_DIRECTORY
+        data = {}
+        if request.method == 'GET':
+            data["FILES"] = []
+            for root, dirnames, filenames in os.walk(CURRENT_WORKING_DIRECTORY):
+                for filename in filenames:
+                    if filename.endswith(('.YAML', '.YML', '.yaml', '.yml')):
+                        files = {}
+                        abs_path = os.path.join(root, filename)
+                        rel_path = abs_path.replace(CURRENT_WORKING_DIRECTORY,"")
+                        files["PATH"] = rel_path[1:].replace("\\","/")
+                        files["NAME"] = filename
+                        data["FILES"].append(files)
+            return JSONEncoder().encode(data)
+
+        else:
+            return 'bad request!', 400
 
     # Test function
     @app.route('/test',methods=['GET','PATCH','POST'])
     @csrf.exempt
     def test():
-        data = {}
-        if request.method == 'POST':
-            post_data = request.json
-            print(post_data)
-            return jsonify(data)
-
+        return "Hi"
 
 
 

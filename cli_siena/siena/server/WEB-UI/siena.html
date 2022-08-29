@@ -15,8 +15,6 @@
     <script src="{{ url_for('static', filename='./scripts/session.js') }}"></script>
     <link rel="stylesheet"
         href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/9.6.1/css/fabric.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='./coloris/coloris.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='./coloris/coloris.js') }}">
     <title>SIENA • Tagging tool</title>
 </head>
 
@@ -25,11 +23,9 @@
         <div class="container">
             <div class="icon"></div>
             <ul>
-                <li>File</li>
-                <li>Edit</li>
-                <li id="siena-project-export">Export</li>
-                <li id="siena-project-import">Import</li>
-                <li>View</li>
+                <li id="siena-project-export">Save as RASA NLU data</li>
+                <li id="siena-knowledge-import">Import knowledge base</li>
+                <li id="siena-knowledge-export" data-toggle="modal" data-target="#exampleModal">Export knowledge base</li>
             </ul>
         </div>
         <div class="namespace">SIENA</div>
@@ -94,7 +90,6 @@
         <div class="entity-controllers">
             <div class="siena-btn-tile" id="add-new-entity"> Add new entity</div>
         </div>
-
     </aside>
     <aside id="siena-files-side-window" style="display: none;">
         <div class="explorer">
@@ -102,18 +97,25 @@
         </div>
         <ul class="options" id="siena-file-list">
         </ul>
-        <div class="entity-controllers">
-            <div class="siena-btn-tile" id="add-new-file">Add new file</div>
+    </aside>
+    <aside id="siena-knowledge-side-window" style="display: none;">
+        <div class="explorer">
+            <div class="content">KNOWLEDGE</div>
         </div>
-
+        <ul class="options" id="siena-knowledge-explorer">
+        </ul>
     </aside>
     <section>
         <ul class="workspace">
-            <li class="active" id="siena-side-bar-icon-entities"><span><i
-                        class="ms-Icon ms-inline ms-font-xl ms-Icon--AppIconDefault ms-fontColor-white"></i></span>
+            <li class="active" id="siena-side-bar-icon-entities">
+                <span><i class="ms-Icon ms-inline ms-font-xl ms-Icon--AppIconDefault ms-fontColor-white"></i></span>
             </li>
-            <li class="non-active" id="siena-side-bar-icon-files"><span><i
-                        class="ms-Icon ms-inline ms-font-xl ms-Icon--FileCSS ms-fontColor-white"></i></span></li>
+            <li class="non-active" id="siena-side-bar-icon-files">
+                <span><i class="ms-Icon ms-inline ms-font-xl ms-Icon--FileCSS ms-fontColor-white"></i></span>
+            </li>
+            <li class="non-active" id="siena-side-bar-icon-knowlegde">
+                <span><i class="ms-Icon ms-inline ms-font-xl ms-Icon--AutoEnhanceOn ms-fontColor-white"></i></span>
+            </li>
         </ul>
         <ul class="config">
             <li><span></span></li>
@@ -124,6 +126,7 @@
         <input type="hidden" id="siena-workspace-previous-value" value="1">
         <input type="hidden" id="siena-workspace-next-value" value="3">
         <input type="hidden" id="siena-selected-file-id" value="">
+        <input id="knowledge-file-upload" type="file" accept=".csv" name="file" style="display:none"/>
     </form>
     <!--
         Z Index 1 area
@@ -145,7 +148,7 @@
                     <input class="form-item" type="text" id="manage-entity-name">
                 </div>
                 <div class="form-goup">
-                    <label class="form-item" for="entity-replacer-name">Replacer</label>
+                    <label class="form-item" for="entity-replacer-name">Value name</label>
                     <input class="form-item" type="text" id="manage-entity-replacer-name">
                 </div>
                 <div class="form-goup">
