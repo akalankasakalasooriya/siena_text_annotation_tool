@@ -588,7 +588,7 @@ aside .options .list-options span {
 }
 
 aside .options .list-options:hover {
-  background-color: #25242e;
+  background-color: #007acc;
 }
 
 section {
@@ -656,6 +656,7 @@ section .workspace li:not(:first-child) {
 }
 
 section .config {
+  visibility: hidden;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

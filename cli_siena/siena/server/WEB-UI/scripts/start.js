@@ -30,11 +30,11 @@ $("#start-step-3-file-upload-done").on("click", function (evt) {
   return false;
 });
 
-function uploadDocument(projectId){
+function uploadDocument(path){
     //upload document
     var documentData = new FormData();
     documentData.append('file', $('#start-step-3-file-upload')[0].files[0]);
-    documentData.append('PROJECT_ID', projectId);
+    documentData.append('FILE_PATH', path);
     $.ajax({
       url: "/API/fileUpload",
       type: 'POST',
